@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель Керування</title>
+</head>
+<body>
+    <h1>Панель Керування</h1>
+    
+    <h2>Термометри</h2>
+    <ul>
+        {% for thermometer in thermometers %}
+            <li>{{ thermometer.name }} ({{ thermometer.vendor }}) - {{ thermometer.min_temp }} до {{ thermometer.max_temp }} °C</li>
+        {% endfor %}
+    </ul>
+    
+    <h2>Категорії</h2>
+    <ul>
+        {% for category in categories %}
+            <li>{{ category.name }}</li>
+        {% endfor %}
+    </ul>
+    
+    <h2>Властивості</h2>
+    <ul>
+        {% for property in properties %}
+            <li>{{ property.name }} ({{ property.units }})</li>
+        {% endfor %}
+    </ul>
+
+    <a href="/add_thermometer">Додати Термометр</a><br>
+    <a href="/add_category">Додати Категорію</a><br>
+    <a href="/add_thermometer">Додати Термометр</a><br>
+    <a href="/add_category">Додати Категорію</a><br>
+    <a href="/add_property">Додати Властивість</a><br>
+    <a href="/logout">Вихід</a>
+</body>
+</html>

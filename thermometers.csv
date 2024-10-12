@@ -1,0 +1,4 @@
+name,vendor,category,min_temp,max_temp,accuracy
+ThermoPro TP-50,ThermoPro,Електронні термометри,-50,70,0.1
+Braun Thermoscan,Braun,Інфрачервоні термометри,-20,60,0.2
+Тестова назва,Виробник 1,Ртутні,-20,50,1

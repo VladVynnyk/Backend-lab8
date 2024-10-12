@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Додати Термометр</title>
+</head>
+<body>
+    <h1>Додати Термометр</h1>
+    <form method="POST" action="/add_thermometer">
+        <label>Назва:</label>
+        <input type="text" name="name" required><br>
+        <label>Виробник:</label>
+        <input type="text" name="vendor" required><br>
+        <label>Категорія:</label>
+        <input type="text" name="category" required><br>
+        <label>Мінімальна температура:</label>
+        <input type="number" name="min_temp" required><br>
+        <label>Максимальна температура:</label>
+        <input type="number" name="max_temp" required><br>
+        <label>Точність:</label>
+        <input type="number" step="0.01" name="accuracy" required><br>
+        <input type="submit" value="Додати">
+    </form>
+</body>
+</html>
