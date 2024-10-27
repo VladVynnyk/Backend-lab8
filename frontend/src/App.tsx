@@ -6,7 +6,7 @@ function App() {
   return (
       <div className={"mx-auto"}>
           <h1 className="text-3xl font-bold md text-center mb-3">
-              Hello world!
+              Довідник термометрів
           </h1>
           <Table/>
       </div>
