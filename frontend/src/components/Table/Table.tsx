@@ -9,6 +9,9 @@ import {
 import NoData from "./NoData";
 import EntityForm from "../Form/EntityForm.tsx";
 import DeleteButton from "../Button/DeleteButton.tsx";
+
+import SearchInput from "../SearchInput/SearchInput.tsx";
+
 import { transformThermometersData } from "../../utils/utils";
 
 const DataTable: React.FC = () => {
@@ -189,6 +192,7 @@ const DataTable: React.FC = () => {
           </tbody>
         </table>
       )}
+      <SearchInput/>
     </div>
   );
 };

@@ -280,7 +280,7 @@ class Thermometer(Base):
                 f"accuracy={self.accuracy}, properties={[prop.name for prop in self.properties]})")
 
 
-Base.metadata.create_all(engine)
+# Base.metadata.create_all(engine)
 
 # Тестування
 

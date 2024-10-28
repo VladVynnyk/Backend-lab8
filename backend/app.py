@@ -1,9 +1,9 @@
 import os
 from flask import Flask, request, jsonify, session as flask_session
 from flask_cors import CORS
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
-from backend.database.tables import User, Thermometer, Category, Property
+from database.tables import User, Thermometer, Category, Property
 
 # Ініціалізація Flask додатку
 app = Flask(__name__)
@@ -112,6 +112,18 @@ def delete_user(user_id):
     User.delete_by_id(user_id)
     return jsonify({"message": "User deleted"})
 
+@app.route('/users/search', methods=['GET'])
+def search_users():
+    query = request.args.get('query', '').strip()
+    results_query = db_session.query(User).filter(
+        User.username.ilike(f"%{query}%")
+    )
+    results = results_query.all()
+    return jsonify([{
+        "id": user.id,
+        "username": user.username
+    } for user in results])
+
 # Ендпоінт для автентифікації
 @app.route('/auth', methods=['POST'])
 def authenticate():
@@ -164,6 +176,19 @@ def delete_category(category_id):
     Category.delete_by_id(category_id)
     return jsonify({"message": "Category deleted"})
 
+
+@app.route('/categories/search', methods=['GET'])
+def search_categories():
+    query = request.args.get('query', '').strip()
+    results_query = db_session.query(Category).filter(
+        Category.name.ilike(f"%{query}%")
+    )
+    results = results_query.all()
+    return jsonify([{
+        "id": category.id,
+        "name": category.name
+    } for category in results])
+
 # Ендпоінти для моделі Property
 
 @app.route('/properties', methods=['POST'])
@@ -190,6 +215,19 @@ def get_single_property(property_id):
         return jsonify({"id": property_instance.id, "name": property_instance.name, "units": property_instance.units})
     return jsonify({"error": "Property not found"}), 404
 
+@app.route('/properties/search', methods=['GET'])
+def search_properties():
+    query = request.args.get('query', '').strip()
+    results_query = db_session.query(Property).filter(
+        (Property.name.ilike(f"%{query}%")) |
+        (Property.units.ilike(f"%{query}%"))
+    )
+    results = results_query.all()
+    return jsonify([{
+        "id": prop.id,
+        "name": prop.name,
+        "units": prop.units
+    } for prop in results])
 
 @app.route('/properties/<int:property_id>', methods=['PUT'])
 def update_property(property_id):
@@ -303,6 +341,33 @@ def update_thermometer(thermometer_id):
 def delete_thermometer(thermometer_id):
     Thermometer.delete_by_id(thermometer_id)
     return jsonify({"message": "Thermometer deleted"})
+
+
+@app.route('/thermometers/search', methods=['GET'])
+def search_thermometers():
+    query = request.args.get('query', '').strip()
+    print("QUERY: ", query)
+    # Базовий запит
+    results_query = db_session.query(Thermometer).join(Category).filter(
+        (Thermometer.name.ilike(f"%{query}%")) |
+        (Thermometer.vendor.ilike(f"%{query}%")) |
+        (Category.name.ilike(f"%{query}%"))
+    )
+
+    # Виконання запиту
+    results = results_query.all()
+
+    # Формування JSON відповіді
+    return jsonify([{
+        "id": thermo.id,
+        "name": thermo.name,
+        "vendor": thermo.vendor,
+        "category": thermo.category.name,
+        "min_temp": thermo.min_temp,
+        "max_temp": thermo.max_temp,
+        "accuracy": thermo.accuracy,
+        "properties": [prop.name for prop in thermo.properties]
+    } for thermo in results])
 
 
 # Ендпоінт для входу
