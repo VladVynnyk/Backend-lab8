@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: thermometers
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Flask API
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URI=postgresql+psycopg2://postgres:changeme@db:5432/thermometers
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

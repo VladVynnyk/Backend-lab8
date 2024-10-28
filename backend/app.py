@@ -1,26 +1,79 @@
+import os
 from flask import Flask, request, jsonify, session as flask_session
 from flask_cors import CORS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database.tables import User, Thermometer, Category, Property
+from backend.database.tables import User, Thermometer, Category, Property
 
 # Ініціалізація Flask додатку
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 CORS(app)
 
+DB_URI = os.environ.get('DATABASE_URI', 'postgresql+psycopg2://postgres:changeme@localhost:5432/thermometers')
+
 # Підключення до бази даних PostgreSQL
-engine = create_engine('postgresql+psycopg2://postgres:changeme@localhost:5432/thermometers', echo=True)
+engine = create_engine(DB_URI, echo=True)
 Session = sessionmaker(bind=engine)
 db_session = Session()
+
+
+def initialize_data():
+    # Перевірка та додавання користувачів
+    if db_session.query(User).count() == 0:
+        User.add_user("admin", "password123")
+        User.add_user("user1", "mypassword")
+        print("Users added")
+
+    # Перевірка та додавання категорій
+    if db_session.query(Category).count() == 0:
+        Category.add("Електронні термометри")
+        Category.add("Інфрачервоні термометри")
+        print("Categories added")
+
+    # Перевірка та додавання властивостей
+    if db_session.query(Property).count() == 0:
+        Property.add("Точність", "°C")
+        Property.add("Діапазон температур", "°C")
+        print("Properties added")
+
+    # Перевірка та додавання термометрів
+    if db_session.query(Thermometer).count() == 0:
+        Thermometer.add(
+            name="ThermoPro TP-50",
+            vendor="ThermoPro",
+            category_name="Електронні термометри",
+            min_temp=-50,
+            max_temp=70,
+            accuracy=0.1,
+            property_names=["Точність", "Діапазон температур"]
+        )
+
+        Thermometer.add(
+            name="Braun Thermoscan",
+            vendor="Braun",
+            category_name="Інфрачервоні термометри",
+            min_temp=-20,
+            max_temp=60,
+            accuracy=0.2,
+            property_names=["Точність"]
+        )
+        print("Thermometers added")
+
+# Викликаємо функцію ініціалізації при запуску програми
+initialize_data()
+
+
+
 
 
 # Ендпоінти для моделі User
 
 @app.route('/users', methods=['POST'])
 def add_user():
-    username = request.form.get('username')
-    password = request.form.get('password')
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
 
     if db_session.query(User).filter_by(username=username).first():
         return jsonify({"error": "User already exists"}), 400
@@ -47,8 +100,9 @@ def get_single_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
-    username = request.form.get('username')
-    password = request.form.get('password')
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
     User.update_by_id(user_id, username=username, password=password)
     return jsonify({"message": "User updated"})
 
@@ -61,8 +115,9 @@ def delete_user(user_id):
 # Ендпоінт для автентифікації
 @app.route('/auth', methods=['POST'])
 def authenticate():
-    username = request.form.get('username')
-    password = request.form.get('password')
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
     user = db_session.query(User).filter_by(username=username, password=password).first()
     if user:
         return jsonify({"message": "Authenticated", "user": {"username": username}})
@@ -73,7 +128,8 @@ def authenticate():
 
 @app.route('/categories', methods=['POST'])
 def add_category():
-    name = request.form.get('name')
+    data = request.get_json()
+    name = data.get('name')
     category = Category(name=name)
     db_session.add(category)
     db_session.commit()
@@ -97,7 +153,8 @@ def get_single_category(category_id):
 
 @app.route('/categories/<int:category_id>', methods=['PUT'])
 def update_category(category_id):
-    name = request.form.get('name')
+    data = request.get_json()
+    name = data.get('name')
     Category.update_by_id(category_id, name=name)
     return jsonify({"message": "Category updated"})
 
@@ -111,8 +168,9 @@ def delete_category(category_id):
 
 @app.route('/properties', methods=['POST'])
 def add_property():
-    name = request.form.get('name')
-    units = request.form.get('units')
+    data = request.get_json()
+    name = data.get('name')
+    units = data.get('units')
     property = Property(name=name, units=units)
     db_session.add(property)
     db_session.commit()
@@ -135,8 +193,9 @@ def get_single_property(property_id):
 
 @app.route('/properties/<int:property_id>', methods=['PUT'])
 def update_property(property_id):
-    name = request.form.get('name')
-    units = request.form.get('units')
+    data = request.get_json()
+    name = data.get('name')
+    units = data.get('units')
     Property.update_by_id(property_id, name=name, units=units)
     return jsonify({"message": "Property updated"})
 
@@ -150,13 +209,14 @@ def delete_property(property_id):
 
 @app.route('/thermometers', methods=['POST'])
 def add_thermometer():
-    name = request.form.get('name')
-    vendor = request.form.get('vendor')
-    category_name = request.form.get('category')
-    min_temp = request.form.get('min_temp')
-    max_temp = request.form.get('max_temp')
-    accuracy = request.form.get('accuracy')
-    property_names = request.form.get('properties', [])
+    data = request.get_json()
+    name = data.get('name')
+    vendor = data.get('vendor')
+    category_name = data.get('category')
+    min_temp = data.get('min_temp')
+    max_temp = data.get('max_temp')
+    accuracy = data.get('accuracy')
+    property_names = data.get('properties', [])
 
     category = db_session.query(Category).filter_by(name=category_name).first()
     if not category:
@@ -220,14 +280,15 @@ def get_single_thermometer(thermometer_id):
 
 @app.route('/thermometers/<int:thermometer_id>', methods=['PUT'])
 def update_thermometer(thermometer_id):
-    name = request.form.get('name')
-    vendor = request.form.get('vendor')
-    min_temp = request.form.get('min_temp')
-    max_temp = request.form.get('max_temp')
-    accuracy = request.form.get('accuracy')
-    property_names = request.form.get('properties', [])
+    data = request.get_json()
+    name = data.get('name')
+    vendor = data.get('vendor')
+    min_temp = data.get('min_temp')
+    max_temp = data.get('max_temp')
+    accuracy = data.get('accuracy')
+    property_names = data.get('properties', [])
+    category_name = data.get('category')
 
-    category_name = request.form.get('category')
     category = db_session.query(Category).filter_by(name=category_name).first() if category_name else None
     property_ids = [prop.id for prop in db_session.query(Property).filter(Property.name.in_(property_names)).all()]
 
@@ -247,8 +308,9 @@ def delete_thermometer(thermometer_id):
 # Ендпоінт для входу
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form.get('username')
-    password = request.form.get('password')
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
 
     user = db_session.query(User).filter_by(username=username, password=password).first()
     if user:

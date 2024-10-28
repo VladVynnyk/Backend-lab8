@@ -1,9 +1,12 @@
+import os
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship, declarative_base, sessionmaker
 
 Base = declarative_base()
 
-engine = create_engine('postgresql+psycopg2://postgres:changeme@localhost:5432/thermometers', echo=True)
+DB_URI = os.environ.get('DATABASE_URI', 'postgresql+psycopg2://postgres:changeme@localhost:5432/thermometers')
+# engine = create_engine('postgresql+psycopg2://postgres:changeme@localhost:5432/thermometers', echo=True)
+engine = create_engine(DB_URI, echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
 
@@ -277,7 +280,7 @@ class Thermometer(Base):
                 f"accuracy={self.accuracy}, properties={[prop.name for prop in self.properties]})")
 
 
-# Base.metadata.create_all(engine)
+Base.metadata.create_all(engine)
 
 # Тестування
 

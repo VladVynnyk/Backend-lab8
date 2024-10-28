@@ -1,4 +1,3 @@
-// src/components/EntityForm.tsx
 import React, { useState, useEffect } from 'react';
 
 type Field = {
@@ -34,7 +33,7 @@ const EntityForm: React.FC<EntityFormProps> = ({
   useEffect(() => {
     if (entityName === "thermometers") {
       setIsLoadingCategories(true);
-      fetch(import.meta.env.VITE_API_URL+'/categories')
+      fetch(`${import.meta.env.VITE_API_URL}/categories`)
         .then((res) => res.json())
         .then((data) => {
           const options = data.map((cat: { id: string; name: string }) => ({
@@ -61,13 +60,14 @@ const EntityForm: React.FC<EntityFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData();
-    Object.keys(formValues).forEach((key) => formData.append(key, formValues[key]));
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/${entityName}${id ? `/${id}` : ''}`, {
         method: id ? 'PUT' : 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formValues),
       });
 
       if (response.ok) {
